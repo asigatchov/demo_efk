@@ -1,0 +1,46 @@
+version: '2'
+services:
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:5.1.1
+    container_name: elasticsearch
+    environment:
+      - bootstrap.memory_lock=true
+      - "ES_JAVA_OPTS=-Xms7g -Xmx7g"
+      - xpack.security.enabled=false
+      - http.host=0.0.0.0
+      - http.max_content_length=200m
+      - transport.host=127.0.0.1
+
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+      nofile:
+        soft: 65536
+        hard: 65536
+    mem_limit: 7.5g
+    cap_add:
+       - IPC_LOCK
+    volumes:
+      - esdata1:/usr/share/elasticsearch/data
+    ports:
+      - 9200:9200
+    networks:
+      - esnet
+  kibana:
+    image: docker.elastic.co/kibana/kibana:5.1.1
+    environment:
+      ELASTICSEARCH_URL: http://elasticsearch:9200
+    ports:
+     - 5601:5601
+    networks:
+      - esnet
+    volumes:
+      - ./kibana.yml:/usr/share/kibana/config/kibana.yml
+
+volumes:
+  esdata1:
+    driver: local
+networks:
+  esnet:
+    driver: bridge
